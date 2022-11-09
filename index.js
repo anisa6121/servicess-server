@@ -33,10 +33,10 @@ client.connect((err) => {
 
 
 app.get("/", (req, res) => {
-	res.send("All ");
+	res.send("All Food service is Running");
 });
 
 
 app.listen(port, () => {
-	console.log(`Food Server is Runn ${port}`);
+	console.log(`Food Server is Running ${port}`);
 });
