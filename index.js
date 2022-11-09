@@ -32,19 +32,37 @@ async function run() {
  const serviceCollection = client.db("foodService").collection("foodServices");
   
         
-// get data
+// get all data
         app.get("/allServices", async(req, res) => {
     const query = {};
     const cursor = serviceCollection.find(query);
     const services = await cursor.toArray();
     res.send(services);
 	
-});
-	
+        });
+        
+        // get three data
+	  app.get("/someServices", async (req, res) => {
+			const query = {};
+			const cursor = serviceCollection.find(query);
+			const services = await cursor.limit(3).toArray();
+			res.send(services);
+		});
 
 		
-		
-	
+// Add Service
+ app.post("/allServices", async(req, res) => {
+  
+    console.log('post Api called')
+    const addService = req.body
+    console.log(addService);
+
+    const result = await serviceCollection.insertOne(addService);
+	console.log(result);
+
+	res.send(result);
+             
+ });
 		
 
 		
