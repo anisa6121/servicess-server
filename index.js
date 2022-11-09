@@ -38,5 +38,5 @@ app.get("/", (req, res) => {
 
 
 app.listen(port, () => {
-	console.log(`Food Server is Running ${port}`);
+	console.log(`Food Server is Runn ${port}`);
 });
