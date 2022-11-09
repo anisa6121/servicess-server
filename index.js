@@ -33,7 +33,7 @@ client.connect((err) => {
 
 
 app.get("/", (req, res) => {
-	res.send("All Foods Services is Running");
+	res.send("All ");
 });
 
 
