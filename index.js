@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // dotenv
@@ -33,7 +34,16 @@ const serviceCollection = client.db("foodService").collection("foodServices");
 // review Collection
 
 const reviewCollection = client.db("foodService").collection("reviews");		
-		
+		// Jwt Token
+
+
+app.post("/jwt", (req, res) => {
+const user = req.body;
+console.log(user);
+const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{ expiresIn: "1d" });
+	console.log(token);
+	res.send({ token });
+		});
 		// get all data
 		app.get("/allServices", async (req, res) => {
 			const query = {};
@@ -113,6 +123,18 @@ res.send(reviews)
 
 	// 		res.send(singleIdReview);
 	// 	});
+
+
+	// Delete
+
+		app.delete("/allReviews/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { _id: ObjectId(id) };
+			const result = await reviewCollection.deleteOne(query);
+
+			res.send(result)
+	
+});
 		
 	}
     finally {
