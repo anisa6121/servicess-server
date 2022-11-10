@@ -9,7 +9,7 @@ require("dotenv").config();
 const app = express();
 const port = process.env.port || 5000;
 
-// middleware   
+// middleware
 app.use(cors());
 
 app.use(express.json());
@@ -18,31 +18,60 @@ console.log(process.env.DB_USER);
 console.log(process.env.DB_PASSWORD);
 // mongod
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.yyqnrtj.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri)
+console.log(uri);
 const client = new MongoClient(uri, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 	serverApi: ServerApiVersion.v1,
 });
+
+function verifyJwt(req, res, next) {
+	const authHeader = req.headers.authorization;
+
+	if (!authHeader) {
+		res.status(401).send({ message: "unauthorized access" });
+	}
+	const token = authHeader.split(" ")[1];
+	jwt.verify(
+		token,
+		process.env.ACCESS_TOKEN_SECRET,
+		function (err, decoded) {
+			if (err) {
+				res.status(403).send({
+					message: "unauthorized access",
+				});
+			}
+			req.decoded = decoded;
+			next();
+		}
+	);
+}
+
 async function run() {
 	try {
 		// database Name & collection Name
-const serviceCollection = client.db("foodService").collection("foodServices");
+		const serviceCollection = client
+			.db("foodService")
+			.collection("foodServices");
 
-// review Collection
+		// review Collection
 
-const reviewCollection = client.db("foodService").collection("reviews");		
+		const reviewCollection = client
+			.db("foodService")
+			.collection("reviews");
 		// Jwt Token
 
-
-app.post("/jwt", (req, res) => {
-const user = req.body;
-console.log(user);
-const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{ expiresIn: "1d" });
-	console.log(token);
-	res.send({ token });
+		app.post("/jwt", (req, res) => {
+			const user = req.body;
+			console.log(user);
+			const token = jwt.sign(
+				user,
+				process.env.ACCESS_TOKEN_SECRET,
+				{ expiresIn: "1d" }
+			);
+			console.log(token);
+			res.send({ token });
 		});
 		// get all data
 		app.get("/allServices", async (req, res) => {
@@ -56,9 +85,11 @@ const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{ expiresIn: "1d" })
 
 		app.get("/allServices/:id", async (req, res) => {
 			const id = req.params.id;
-			const query = { _id: ObjectId(id)};
+			const query = { _id: ObjectId(id) };
 
-	const singleService = await serviceCollection.findOne(query);
+			const singleService = await serviceCollection.findOne(
+				query
+			);
 
 			res.send(singleService);
 		});
@@ -85,69 +116,56 @@ const token = jwt.sign(user,process.env.ACCESS_TOKEN_SECRET,{ expiresIn: "1d" })
 			res.send(result);
 		});
 
-
-
 		// reviews
-app.post("/reviews", async (req, res) => {
-	const review = req.body;
-console.log(review)
-	const result = await reviewCollection.insertOne(review);
-	res.send(result)
-});
-		
+		app.post("/reviews", verifyJwt, async (req, res) => {
+			const review = req.body;
+			console.log(review);
+			const result = await reviewCollection.insertOne(review);
+			res.send(result);
+		});
+
 		//all reviews get
 
 		app.get("/allReviews", async (req, res) => {
-
-		let query = {};
+			let query = {};
 			if (req.query.email) {
 				query = {
 					email: req.query.email,
-				}
-				
-}
-const cursor = reviewCollection.find(query)
-const reviews = await cursor.toArray();
-res.send(reviews)
-});
+				};
+			}
+			const cursor = reviewCollection.find(query);
+			const reviews = await cursor.toArray();
+			res.send(reviews);
+		});
 
-		
-		
 		// one id review
 
-	// 	app.get("/allReviews/:id", async (req, res) => {
-	// 		const id = req.params.id;
-	// 		const query = { serviceId: ObjectId(id) };
+		app.get("/getallReviews/:id", async (req, res) => {
+			const id = req.params.id;
+			const query = { serviceId: id };
+			const cursor = reviewCollection.find(query);
+			const singleIdReview = await cursor.toArray();
+			res.send(singleIdReview);
+		});
 
-	// const singleIdReview = await reviewCollection.findOne(query);
+		// Delete
 
-	// 		res.send(singleIdReview);
-	// 	});
-
-
-	// Delete
-
-		app.delete("/allReviews/:id", async (req, res) => {
+		app.delete("/allReviews/:id", verifyJwt, async (req, res) => {
 			const id = req.params.id;
 			const query = { _id: ObjectId(id) };
 			const result = await reviewCollection.deleteOne(query);
 
-			res.send(result)
-	
-});
-		
-	}
-    finally {
+			res.send(result);
+		});
+	} finally {
 	}
 }
 
 run().catch((err) => console.log(err));
 
-
 app.get("/", (req, res) => {
 	res.send("All Food service is Running");
 });
-
 
 app.listen(port, () => {
 	console.log(`Food Server is Running ${port}`);
