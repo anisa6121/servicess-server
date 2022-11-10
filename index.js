@@ -28,10 +28,12 @@ const client = new MongoClient(uri, {
 async function run() {
 	try {
 		// database Name & collection Name
-		const serviceCollection = client
-			.db("foodService")
-			.collection("foodServices");
+const serviceCollection = client.db("foodService").collection("foodServices");
 
+// review Collection
+
+const reviewCollection = client.db("foodService").collection("reviews");		
+		
 		// get all data
 		app.get("/allServices", async (req, res) => {
 			const query = {};
@@ -72,6 +74,46 @@ async function run() {
 
 			res.send(result);
 		});
+
+
+
+		// reviews
+app.post("/reviews", async (req, res) => {
+	const review = req.body;
+console.log(review)
+	const result = await reviewCollection.insertOne(review);
+	res.send(result)
+});
+		
+		//all reviews get
+
+		app.get("/allReviews", async (req, res) => {
+
+		let query = {};
+			if (req.query.email) {
+				query = {
+					email: req.query.email,
+				}
+				
+}
+const cursor = reviewCollection.find(query)
+const reviews = await cursor.toArray();
+res.send(reviews)
+});
+
+		
+		
+		// one id review
+
+	// 	app.get("/allReviews/:id", async (req, res) => {
+	// 		const id = req.params.id;
+	// 		const query = { serviceId: ObjectId(id) };
+
+	// const singleIdReview = await reviewCollection.findOne(query);
+
+	// 		res.send(singleIdReview);
+	// 	});
+		
 	}
     finally {
 	}
