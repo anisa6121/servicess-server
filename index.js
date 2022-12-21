@@ -4,12 +4,12 @@ const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 // dotenv
-require("dotenv").config();
+require("dotenv").config()
 
-const app = express();
+const app = express(); 
 const port = process.env.port || 5000;
 
-// middleware
+// middleware 
 app.use(cors());
 
 app.use(express.json());
@@ -74,6 +74,7 @@ async function run() {
 			res.send({ token });
 		});
 		// get all data
+
 		app.get("/allServices", async (req, res) => {
 			const query = {};
 			const cursor = serviceCollection.find(query);
@@ -168,5 +169,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-	console.log(`Food Server is Running ${port}`);
+	console.log(`Food Server is Running on ${port}`);
 });
